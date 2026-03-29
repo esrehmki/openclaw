@@ -73,8 +73,25 @@ export function registerMatrixMonitorEvents(params: {
     logVerboseMessage,
   });
 
+  // Cache the bot's own user ID to filter self-messages synchronously.
+  // This prevents infinite loops when verbose tool output is enabled (issue #007):
+  // without this filter, the bot's own outbound messages arriving via /sync would be
+  // forwarded to onRoomMessage and processed as new inbound user messages.
+  let cachedSelfUserId: string | null = null;
+  void resolveMatrixSelfUserId(client, logVerboseMessage).then((uid) => {
+    cachedSelfUserId = uid;
+  });
+
   client.on("room.message", (roomId: string, event: MatrixRawEvent) => {
     if (routeVerificationEvent(roomId, event)) {
+      return;
+    }
+    // Drop self-messages before they reach the handler. After the initial async
+    // resolution (~50-200ms), this check is synchronous with zero race window.
+    // During the startup grace period, handler.ts has its own self-sender check
+    // as a secondary guard.
+    const senderId = typeof event.sender === "string" ? event.sender : null;
+    if (cachedSelfUserId && senderId === cachedSelfUserId) {
       return;
     }
     void onRoomMessage(roomId, event);

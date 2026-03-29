@@ -45,6 +45,8 @@ export async function deliverMatrixReplies(params: {
   accountId?: string;
   mediaLocalRoots?: readonly string[];
   tableMode?: MarkdownTableMode;
+  /** When true, send text as m.notice instead of m.text (machine-generated tool output). */
+  notice?: boolean;
 }): Promise<void> {
   const core = getMatrixRuntime();
   const tableMode =
@@ -105,6 +107,7 @@ export async function deliverMatrixReplies(params: {
           replyToId: replyToIdForReply,
           threadId: params.threadId,
           accountId: params.accountId,
+          notice: params.notice,
         });
         sentTextChunk = true;
       }
@@ -126,6 +129,7 @@ export async function deliverMatrixReplies(params: {
         threadId: params.threadId,
         audioAsVoice: reply.audioAsVoice,
         accountId: params.accountId,
+        notice: params.notice,
       });
       first = false;
     }

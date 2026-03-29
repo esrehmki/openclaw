@@ -257,6 +257,16 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
       ) {
         return;
       }
+
+      // Ignore m.notice messages — machine-generated content per Matrix spec §11.2.1.1.
+      // Prevents self-message loops when verbose tool output is enabled (issue #007)
+      // and avoids processing output from other bots or bridges.
+      if (
+        eventType === EventType.RoomMessage &&
+        (event.content as { msgtype?: string })?.msgtype === "m.notice"
+      ) {
+        return;
+      }
       logVerboseMessage(
         `matrix: inbound event room=${roomId} type=${eventType} id=${event.event_id ?? "unknown"}`,
       );
@@ -958,6 +968,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
                   accountId: _route.accountId,
                   mediaLocalRoots,
                   tableMode,
+                  notice: info.kind === "tool",
                 });
                 return;
               }
@@ -1014,6 +1025,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
                       accountId: _route.accountId,
                       mediaLocalRoots,
                       tableMode,
+                      notice: info.kind === "tool",
                     });
                   }
                 }
@@ -1053,6 +1065,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
                   accountId: _route.accountId,
                   mediaLocalRoots,
                   tableMode,
+                  notice: info.kind === "tool",
                 });
                 draftConsumed = true;
               } else {
@@ -1074,6 +1087,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
                   accountId: _route.accountId,
                   mediaLocalRoots,
                   tableMode,
+                  notice: info.kind === "tool",
                 });
               }
 
@@ -1103,6 +1117,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
                 accountId: _route.accountId,
                 mediaLocalRoots,
                 tableMode,
+                notice: info.kind === "tool",
               });
             }
           },

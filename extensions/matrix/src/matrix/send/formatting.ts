@@ -28,6 +28,21 @@ export function buildTextContent(body: string, relation?: MatrixRelation): Matri
   return content;
 }
 
+export function buildNoticeContent(body: string, relation?: MatrixRelation): MatrixTextContent {
+  const content: MatrixTextContent = relation
+    ? {
+        msgtype: MsgType.Notice,
+        body,
+        "m.relates_to": relation,
+      }
+    : {
+        msgtype: MsgType.Notice,
+        body,
+      };
+  applyMatrixFormatting(content, body);
+  return content;
+}
+
 export function applyMatrixFormatting(content: MatrixFormattedContent, body: string): void {
   const formatted = markdownToMatrixHtml(body ?? "");
   if (!formatted) {

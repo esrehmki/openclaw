@@ -7,6 +7,7 @@ import type { MatrixClient } from "./sdk.js";
 import { resolveMediaMaxBytes, withResolvedMatrixClient } from "./send/client.js";
 import {
   buildReplyRelation,
+  buildNoticeContent,
   buildTextContent,
   buildThreadRelation,
   resolveMatrixMsgType,
@@ -214,7 +215,9 @@ export async function sendMessageMatrix(
           if (!text) {
             continue;
           }
-          const followup = buildTextContent(text, followupRelation);
+          const followup = opts?.notice
+            ? buildNoticeContent(text, followupRelation)
+            : buildTextContent(text, followupRelation);
           const followupEventId = await sendContent(followup);
           lastMessageId = followupEventId ?? lastMessageId;
         }
@@ -224,7 +227,9 @@ export async function sendMessageMatrix(
           if (!text) {
             continue;
           }
-          const content = buildTextContent(text, relation);
+          const content = opts?.notice
+            ? buildNoticeContent(text, relation)
+            : buildTextContent(text, relation);
           const eventId = await sendContent(content);
           lastMessageId = eventId ?? lastMessageId;
         }
